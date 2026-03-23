@@ -1,0 +1,63 @@
+{% if messages %}
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+    {% for message in messages %}
+    {% if message.tags == 'error' %}
+        {% with bg="text-bg-danger" icon="bi-x-circle-fill" %}
+        <div class="toast align-items-center {{ bg }} border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="4000">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <i class="bi {{ icon }}"></i>
+                    {{ message }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+        {% endwith %}
+    {% elif message.tags == 'success' %}
+        {% with bg="text-bg-success" icon="bi-check-circle-fill" %}
+        <div class="toast align-items-center {{ bg }} border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="4000">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <i class="bi {{ icon }}"></i>
+                    {{ message }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+        {% endwith %}
+    {% elif message.tags == 'warning' %}
+        {% with bg="text-bg-warning" icon="bi-exclamation-triangle-fill" %}
+        <div class="toast align-items-center {{ bg }} border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="4000">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <i class="bi {{ icon }}"></i>
+                    {{ message }}
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+        {% endwith %}
+    {% else %}
+        {% with bg="text-bg-primary" icon="bi-info-circle-fill" %}
+        <div class="toast align-items-center {{ bg }} border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="4000">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <i class="bi {{ icon }}"></i>
+                    {{ message }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+        {% endwith %}
+    {% endif %}
+    {% endfor %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.toast').forEach(function (el) {
+        new bootstrap.Toast(el).show();
+    });
+});
+</script>
+{% endif %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}My Articles — Aavarana{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>My Articles</h2>
+    <a href="{% url 'articles:create' %}" class="btn btn-dark"><i class="bi bi-plus-circle"></i> New Article</a>
+</div>
+
+<ul class="nav nav-tabs mb-4" id="articleTabs">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#drafts">Drafts <span class="badge bg-secondary">{{ drafts.count }}</span></a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#in-review">In Review <span class="badge bg-warning text-dark">{{ in_review.count }}</span></a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#revisions">Revision <span class="badge bg-danger">{{ revisions.count }}</span></a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#published-tab">Published <span class="badge bg-success">{{ published.count }}</span></a></li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade show active" id="drafts">
+        {% include 'articles/_article_table.html' with articles=drafts show_edit=True show_submit=True %}
+    </div>
+    <div class="tab-pane fade" id="in-review">
+        {% include 'articles/_article_table.html' with articles=in_review show_edit=False show_submit=False %}
+        <p class="text-muted small mt-2"><i class="bi bi-info-circle"></i> Editing is locked while your article is under review.</p>
+    </div>
+    <div class="tab-pane fade" id="revisions">
+        {% include 'articles/_article_table.html' with articles=revisions show_edit=True show_submit=True %}
+    </div>
+    <div class="tab-pane fade" id="published-tab">
+        {% include 'articles/_article_table.html' with articles=published show_edit=False show_submit=False %}
+    </div>
+</div>
+{% endblock %}

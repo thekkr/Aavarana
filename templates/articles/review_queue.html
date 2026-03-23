@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Review Queue — Aavarana{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Review Queue</h2>
+
+{% if articles %}
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Article</th>
+                <th>Author</th>
+                <th>Last Submitted</th>
+                <th class="text-center">Times Submitted</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for article in articles %}
+            <tr>
+                <td><strong>{{ article.title }}</strong></td>
+                <td>{{ article.author.get_full_name|default:article.author.email }}</td>
+                <td><small class="text-muted">{{ article.updated_at|date:"N j, Y H:i" }}</small></td>
+                <td class="text-center">
+                    <span class="badge {% if article.submission_count > 2 %}bg-danger{% elif article.submission_count == 2 %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                        {{ article.submission_count }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'articles:review' article.slug %}" class="btn btn-sm btn-warning"><i class="bi bi-eye"></i> Review</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+    <i class="bi bi-check2-circle fs-1 text-success"></i>
+    <p class="mt-3">No articles pending review.</p>
+</div>
+{% endif %}
+{% endblock %}

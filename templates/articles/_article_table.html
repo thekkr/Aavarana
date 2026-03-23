@@ -1,0 +1,52 @@
+{% if articles %}
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Title</th>
+                <th>Updated</th>
+                <th class="text-center">Submissions</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for article in articles %}
+            <tr>
+                <td>
+                    <a href="{% url 'articles:detail' article.slug %}" class="text-decoration-none">{{ article.title }}</a>
+                </td>
+                <td><small class="text-muted">{{ article.updated_at|date:"N j, Y" }}</small></td>
+                <td class="text-center">
+                    {% if article.submission_count > 0 %}
+                        <span class="badge bg-secondary" title="Submitted for review {{ article.submission_count }} time{{ article.submission_count|pluralize }}">
+                            {{ article.submission_count }}
+                        </span>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+                <td class="d-flex gap-2">
+                    {% if show_edit %}
+                        <a href="{% url 'articles:edit' article.slug %}" class="btn btn-sm btn-outline-dark"><i class="bi bi-pencil"></i> Edit</a>
+                    {% endif %}
+                    {% if show_submit %}
+                        <form method="post" action="{% url 'articles:submit' article.slug %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-send"></i> Submit</button>
+                        </form>
+                    {% endif %}
+                    {% if article.status != 'published' %}
+                        <form method="post" action="{% url 'articles:delete' article.slug %}" onsubmit="return confirm('Delete this article?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="text-muted py-3">No articles here.</p>
+{% endif %}

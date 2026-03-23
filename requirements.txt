@@ -1,0 +1,18 @@
+# Core framework
+Django==6.0.3
+
+# Image handling (avatar uploads, article cover images)
+Pillow==12.1.1
+
+# Bootstrap 5 form rendering
+django-crispy-forms==2.6
+crispy-bootstrap5==2026.3
+
+# .env / environment variable management
+python-decouple==3.8
+
+# Google OAuth / social authentication
+django-allauth==65.3.0
+requests
+PyJWT>=2.0
+cryptography

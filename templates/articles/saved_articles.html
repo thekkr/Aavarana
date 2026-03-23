@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Saved Articles — Aavarana{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-bookmark-fill me-2"></i>Saved Articles</h2>
+            <span class="text-muted small">{{ page_obj.paginator.count }} article{{ page_obj.paginator.count|pluralize }} saved</span>
+        </div>
+
+        {% for item in saved %}
+        <div class="card mb-3 border-0 shadow-sm saved-card" id="saved-{{ item.article.slug }}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="mb-1">
+                            <a href="{% url 'articles:detail' item.article.slug %}" class="text-decoration-none text-dark">
+                                {{ item.article.title }}
+                            </a>
+                        </h5>
+                        <div class="text-muted small mb-2">
+                            <span><i class="bi bi-person me-1"></i>{{ item.article.author.get_full_name|default:item.article.author.username }}</span>
+                            <span class="mx-2">&middot;</span>
+                            <span><i class="bi bi-clock me-1"></i>{{ item.article.read_time }} min read</span>
+                            {% if item.article.category %}
+                                <span class="mx-2">&middot;</span>
+                                <span>{{ item.article.category.name }}</span>
+                            {% endif %}
+                            <span class="mx-2">&middot;</span>
+                            <span>Saved {{ item.created_at|date:"N j, Y" }}</span>
+                        </div>
+                        {% if item.article.excerpt %}
+                            <p class="text-muted mb-0 small">{{ item.article.excerpt }}</p>
+                        {% endif %}
+                    </div>
+                    <button class="btn btn-sm btn-outline-danger ms-3 flex-shrink-0 unsave-btn"
+                            data-url="{% url 'articles:save' item.article.slug %}"
+                            data-csrf="{{ csrf_token }}"
+                            data-slug="{{ item.article.slug }}"
+                            title="Remove from saved">
+                        <i class="bi bi-bookmark-x"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-bookmark display-4 d-block mb-3"></i>
+            <p>You haven't saved any articles yet.</p>
+            <a href="{% url 'articles:list' %}" class="btn btn-dark">Browse Articles</a>
+        </div>
+        {% endfor %}
+
+        {% if page_obj.has_other_pages %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                {% endif %}
+                <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.unsave-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        fetch(btn.dataset.url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': btn.dataset.csrf,
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+        .then(r => r.json())
+        .then(function () {
+            const card = document.getElementById('saved-' + btn.dataset.slug);
+            card.style.transition = 'opacity 0.3s';
+            card.style.opacity = '0';
+            setTimeout(function () {
+                card.remove();
+                if (!document.querySelector('.saved-card')) {
+                    document.querySelector('.col-lg-8').innerHTML =
+                        '<div class="text-center py-5 text-muted">' +
+                        '<i class="bi bi-bookmark display-4 d-block mb-3"></i>' +
+                        '<p>You haven\'t saved any articles yet.</p>' +
+                        '<a href="/articles/" class="btn btn-dark">Browse Articles</a>' +
+                        '</div>';
+                }
+            }, 300);
+        })
+        .catch(() => {});
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Review: {{ article.title }} — Aavarana{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-7">
+        <a href="{% url 'articles:review_queue' %}" class="btn btn-sm btn-outline-secondary mb-3"><i class="bi bi-arrow-left"></i> Back to Queue</a>
+        <h2>{{ article.title }}</h2>
+        <div class="text-muted mb-3">
+            By {{ article.author.get_full_name|default:article.author.email }}
+            &middot; {{ article.read_time }} min read
+        </div>
+        <div class="border rounded p-3 mb-4 bg-light" style="max-height:500px;overflow-y:auto;">
+            {{ article.body|linebreaks }}
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white">Review Decision</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" class="btn btn-dark w-100 mt-2">Submit Review</button>
+                </form>
+            </div>
+        </div>
+
+        {% if review_notes %}
+        <div class="card">
+            <div class="card-header">Previous Reviews</div>
+            <div class="list-group list-group-flush">
+                {% for note in review_notes %}
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between">
+                        <span class="badge {% if note.action == 'approved' %}bg-success{% else %}bg-danger{% endif %}">{{ note.get_action_display }}</span>
+                        <small class="text-muted">{{ note.created_at|date:"N j, Y" }}</small>
+                    </div>
+                    {% if note.note %}<p class="mb-0 mt-2 small">{{ note.note }}</p>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

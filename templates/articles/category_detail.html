@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ category.name }} — Aavarana{% endblock %}
+
+{% block content %}
+<h2 class="mb-1">{{ category.name }}</h2>
+{% if category.description %}<p class="text-muted mb-4">{{ category.description }}</p>{% endif %}
+
+{% for article in articles %}
+<div class="card mb-3 shadow-sm">
+    <div class="card-body">
+        <h5><a href="{% url 'articles:detail' article.slug %}" class="text-decoration-none text-dark">{{ article.title }}</a></h5>
+        <p class="text-muted small">{{ article.excerpt }}</p>
+        <small class="text-muted">
+            By {{ article.author.get_full_name|default:article.author.username }}
+            &middot; {{ article.published_at|date:"N j, Y" }}
+            &middot; {{ article.read_time }} min read
+        </small>
+    </div>
+</div>
+{% empty %}
+<p class="text-muted">No articles in this category.</p>
+{% endfor %}
+
+{% if is_paginated %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>{% endif %}
+        <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>{% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

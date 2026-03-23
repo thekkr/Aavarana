@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}User Management — Aavarana{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>User Management</h2>
+    <span class="text-muted">Viewers &amp; Authors</span>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Joined</th>
+                <th>Change Role</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>
+                    <strong>{{ u.get_full_name|default:u.username }}</strong>
+                </td>
+                <td>{{ u.email }}</td>
+                <td>
+                    {% if u.role == 'author' %}
+                        <span class="badge bg-primary">Author</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Viewer</span>
+                    {% endif %}
+                </td>
+                <td>{{ u.date_joined|date:"N j, Y" }}</td>
+                <td>
+                    <form method="post" action="{% url 'accounts:user_role_update' u.pk %}" class="d-flex gap-2">
+                        {% csrf_token %}
+                        <select name="role" class="form-select form-select-sm" style="width:120px;">
+                            <option value="viewer" {% if u.role == 'viewer' %}selected{% endif %}>Viewer</option>
+                            <option value="author" {% if u.role == 'author' %}selected{% endif %}>Author</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-outline-dark">Save</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-muted">No users found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

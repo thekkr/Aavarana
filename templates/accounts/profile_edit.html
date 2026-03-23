@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Edit Profile — Aavarana{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <h2 class="mb-4">Edit Profile</h2>
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            {# Hidden field for default_avatar selection #}
+            {{ form.default_avatar }}
+
+            {# Avatar section #}
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Profile Avatar</label>
+
+                {# Current avatar preview #}
+                <div class="mb-3">
+                    {% with avatar_url=request.user.profile.get_avatar_url %}
+                    {% if avatar_url %}
+                        <img id="currentAvatarPreview" src="{{ avatar_url }}" class="rounded-circle border" style="width:80px;height:80px;object-fit:cover;" alt="Current avatar">
+                    {% else %}
+                        <div id="currentAvatarPreview" class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center" style="width:80px;height:80px;">
+                            <span class="text-white fs-3">{{ request.user.first_name|first|upper|default:request.user.email|first|upper }}</span>
+                        </div>
+                    {% endif %}
+                    {% endwith %}
+                    <small class="text-muted ms-2">Current avatar</small>
+                </div>
+
+                {# Upload own image #}
+                <div class="mb-3">
+                    <label class="form-label">Upload your own image</label>
+                    {{ form.avatar }}
+                    {% if form.avatar.errors %}<div class="text-danger small">{{ form.avatar.errors }}</div>{% endif %}
+                </div>
+
+                {# Default avatar picker #}
+                <div>
+                    <label class="form-label">Or choose a default avatar</label>
+                    <div class="d-flex flex-wrap gap-3 mt-1" id="avatarPicker">
+                        {% for seed, label in avatar_choices %}
+                        <div class="avatar-option text-center" style="cursor:pointer;" data-seed="{{ seed }}">
+                            <img src="https://api.dicebear.com/9.x/thumbs/svg?seed={{ seed }}"
+                                 class="rounded-circle border border-2 {% if form.instance.default_avatar == seed and not form.instance.avatar %}border-dark{% else %}border-transparent{% endif %}"
+                                 style="width:64px;height:64px;background:#f0f0f0;"
+                                 alt="{{ label }}"
+                                 title="{{ label }}">
+                            <div class="small mt-1 text-muted">{{ label }}</div>
+                        </div>
+                        {% endfor %}
+                        {# "None" option to clear default avatar #}
+                        <div class="avatar-option text-center" style="cursor:pointer;" data-seed="">
+                            <div class="rounded-circle border border-2 d-inline-flex align-items-center justify-content-center {% if not form.instance.default_avatar %}border-dark{% else %}border-transparent{% endif %}" style="width:64px;height:64px;background:#e9ecef;">
+                                <i class="bi bi-x-lg text-muted"></i>
+                            </div>
+                            <div class="small mt-1 text-muted">None</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Other fields #}
+            {{ form.bio|as_crispy_field }}
+            {{ form.website|as_crispy_field }}
+
+            {# User fields #}
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
+                <input type="text" name="username" value="{{ form.username.value|default:'' }}" class="form-control {% if form.username.errors %}is-invalid{% endif %}">
+                <div class="form-text">This is what you use to log in. Must be unique.</div>
+                {% if form.username.errors %}<div class="invalid-feedback d-block">{{ form.username.errors }}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+                <label class="form-label">First Name</label>
+                <input type="text" name="first_name" value="{{ form.first_name.value|default:'' }}" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Last Name</label>
+                <input type="text" name="last_name" value="{{ form.last_name.value|default:'' }}" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Phone Number</label>
+                <input type="text" name="phone_number" value="{{ form.phone_number.value|default:'' }}" class="form-control">
+            </div>
+
+            <button type="submit" class="btn btn-dark mt-2">Save Changes</button>
+            <a href="{% url 'accounts:profile' request.user.username %}" class="btn btn-outline-secondary mt-2 ms-2">Cancel</a>
+        </form>
+    </div>
+</div>
+
+<script>
+(function () {
+    const hiddenInput = document.getElementById('id_default_avatar');
+    const options = document.querySelectorAll('.avatar-option');
+    const preview = document.getElementById('currentAvatarPreview');
+
+    options.forEach(function (opt) {
+        opt.addEventListener('click', function () {
+            const seed = opt.dataset.seed;
+            hiddenInput.value = seed;
+
+            // Update border highlights
+            options.forEach(function (o) {
+                o.querySelector('img, div.rounded-circle').classList.remove('border-dark');
+                o.querySelector('img, div.rounded-circle').classList.add('border-transparent');
+            });
+            opt.querySelector('img, div.rounded-circle').classList.remove('border-transparent');
+            opt.querySelector('img, div.rounded-circle').classList.add('border-dark');
+
+            // Update preview
+            if (seed) {
+                if (preview.tagName === 'IMG') {
+                    preview.src = 'https://api.dicebear.com/9.x/thumbs/svg?seed=' + seed;
+                } else {
+                    // Replace div with img
+                    const img = document.createElement('img');
+                    img.id = 'currentAvatarPreview';
+                    img.src = 'https://api.dicebear.com/9.x/thumbs/svg?seed=' + seed;
+                    img.className = 'rounded-circle border';
+                    img.style.cssText = 'width:80px;height:80px;object-fit:cover;';
+                    img.alt = 'Avatar preview';
+                    preview.replaceWith(img);
+                }
+            }
+        });
+    });
+})();
+</script>
+{% endblock %}

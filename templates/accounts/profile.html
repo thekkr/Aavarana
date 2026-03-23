@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ profile_user.get_full_name|default:profile_user.username }} — Aavarana{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3 text-center">
+        {% with avatar_url=profile_user.profile.get_avatar_url %}
+        {% if avatar_url %}
+            <img src="{{ avatar_url }}" class="rounded-circle img-fluid mb-3" style="max-width:150px;height:150px;object-fit:cover;background:#f0f0f0;" alt="Avatar">
+        {% else %}
+            <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:150px;height:150px;">
+                <span class="text-white fs-1">{{ profile_user.first_name|first|upper|default:profile_user.email|first|upper }}</span>
+            </div>
+        {% endif %}
+        {% endwith %}
+        <h4>{{ profile_user.get_full_name|default:profile_user.username }}</h4>
+        <span class="badge bg-secondary">{{ profile_user.get_role_display }}</span>
+        {% if profile_user.profile.website %}
+            <p class="mt-2"><a href="{{ profile_user.profile.website }}" target="_blank">{{ profile_user.profile.website }}</a></p>
+        {% endif %}
+        {% if request.user == profile_user %}
+            <a href="{% url 'accounts:profile_edit' %}" class="btn btn-outline-dark btn-sm mt-2">Edit Profile</a>
+        {% endif %}
+    </div>
+    <div class="col-md-9">
+        {% if profile_user.profile.bio %}
+            <p class="text-muted">{{ profile_user.profile.bio }}</p>
+            <hr>
+        {% endif %}
+        <h5>Recent Articles</h5>
+        {% for article in articles %}
+            <div class="mb-3">
+                <a href="{% url 'articles:detail' article.slug %}" class="text-decoration-none">
+                    <h6>{{ article.title }}</h6>
+                </a>
+                <small class="text-muted">{{ article.published_at|date:"N j, Y" }} &middot; {{ article.read_time }} min read</small>
+            </div>
+        {% empty %}
+            <p class="text-muted">No published articles yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

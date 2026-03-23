@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}#{{ tag.name }} — Aavarana{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">#{{ tag.name }}</h2>
+
+{% for article in articles %}
+<div class="card mb-3 shadow-sm">
+    <div class="card-body">
+        <h5><a href="{% url 'articles:detail' article.slug %}" class="text-decoration-none text-dark">{{ article.title }}</a></h5>
+        <p class="text-muted small">{{ article.excerpt }}</p>
+        <small class="text-muted">
+            By {{ article.author.get_full_name|default:article.author.username }}
+            &middot; {{ article.published_at|date:"N j, Y" }}
+        </small>
+    </div>
+</div>
+{% empty %}
+<p class="text-muted">No articles with this tag.</p>
+{% endfor %}
+{% endblock %}
