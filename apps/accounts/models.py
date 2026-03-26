@@ -37,6 +37,9 @@ class CustomUser(AbstractUser):
     def can_write(self):
         return self.role in (self.Role.AUTHOR, self.Role.ADMIN)
 
+    def is_google_user(self):
+        return self.socialaccount_set.filter(provider='google').exists()
+
     def is_newsletter_subscribed(self):
         return NewsletterSubscriber.objects.filter(user=self).exists()
 

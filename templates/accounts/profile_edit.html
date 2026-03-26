@@ -89,6 +89,9 @@
 
             <button type="submit" class="btn btn-dark mt-2">Save Changes</button>
             <a href="{% url 'accounts:profile' request.user.username %}" class="btn btn-outline-secondary mt-2 ms-2">Cancel</a>
+            {% if not request.user.is_google_user %}
+                <a href="{% url 'accounts:password_reset' %}" class="btn btn-link btn-sm mt-2 ms-2 text-muted">Change Password</a>
+            {% endif %}
         </form>
     </div>
 </div>
