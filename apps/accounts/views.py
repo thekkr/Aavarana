@@ -58,10 +58,16 @@ class RegisterView(CreateView):
             return redirect('core:home')
         return super().dispatch(request, *args, **kwargs)
 
+    def form_invalid(self, form):
+        for errors in form.errors.values():
+            for error in errors:
+                messages.error(self.request, error)
+        return super().form_invalid(form)
+
     def form_valid(self, form):
         user = form.save()
         login(self.request, user, backend='django.contrib.auth.backends.ModelBackend')
-        messages.success(self.request, f'Welcome, {user.first_name or user.email}!')
+        messages.success(self.request, f'Welcome, {user.username}!')
         return redirect(self.success_url)
 
 
@@ -71,6 +77,9 @@ class ProfileView(DetailView):
     context_object_name = 'profile_user'
     slug_field          = 'username'
     slug_url_kwarg      = 'username'
+
+    def get_queryset(self):
+        return CustomUser.objects.select_related('_profile').prefetch_related('socialaccount_set')
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

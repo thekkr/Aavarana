@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.core.files.storage import default_storage
+from django.db.models import Count
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.text import slugify
@@ -23,7 +24,9 @@ class ArticleListView(ListView):
     def get_queryset(self):
         return Article.objects.filter(
             status='published'
-        ).select_related('author', 'category').order_by('-published_at')
+        ).select_related('author', 'category').annotate(
+            likes_count=Count('likes')
+        ).order_by('-published_at')
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -305,15 +308,29 @@ class TagDetailView(ListView):
 class EditorImageUploadView(AuthorRequiredMixin, View):
     """Accepts image uploads from TinyMCE and returns the hosted URL."""
 
+    ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp'}
+
     def post(self, request):
         file = request.FILES.get('file')
         if not file:
             return JsonResponse({'error': 'No file uploaded'}, status=400)
 
-        allowed = ('.jpg', '.jpeg', '.png', '.gif', '.webp')
-        ext = os.path.splitext(file.name)[1].lower()
-        if ext not in allowed:
+        if file.content_type not in self.ALLOWED_MIME_TYPES:
             return JsonResponse({'error': 'Unsupported file type'}, status=400)
+
+        # Read first 12 bytes to verify magic bytes match claimed type
+        header = file.read(12)
+        file.seek(0)
+        magic = {
+            b'\xff\xd8\xff': 'image/jpeg',
+            b'\x89PNG\r\n\x1a\n': 'image/png',
+            b'GIF87a': 'image/gif',
+            b'GIF89a': 'image/gif',
+            b'RIFF': 'image/webp',
+        }
+        verified = any(header.startswith(sig) for sig in magic)
+        if not verified:
+            return JsonResponse({'error': 'File content does not match image type'}, status=400)
 
         path = default_storage.save(f'editor/{file.name}', file)
         url  = request.build_absolute_uri(default_storage.url(path))

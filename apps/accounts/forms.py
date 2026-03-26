@@ -4,19 +4,22 @@ from .models import CustomUser, Profile
 
 
 class RegisterForm(UserCreationForm):
-    username     = forms.CharField(
-                       max_length=150,
-                       required=True,
-                       help_text='Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.',
-                   )
-    email        = forms.EmailField(required=True)
-    first_name   = forms.CharField(max_length=150, required=True)
-    last_name    = forms.CharField(max_length=150, required=True)
-    phone_number = forms.CharField(max_length=20, required=False)
+    username = forms.CharField(
+                   max_length=150,
+                   required=True,
+                   help_text='Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.',
+               )
+    email    = forms.EmailField(required=True)
 
     class Meta:
         model  = CustomUser
-        fields = ('username', 'email', 'first_name', 'last_name', 'phone_number', 'password1', 'password2')
+        fields = ('username', 'email', 'password1', 'password2')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['password1'].help_text = None
+        self.fields['password2'].help_text = None
+        self.fields['username'].help_text  = None
 
     def clean_username(self):
         username = self.cleaned_data['username']
@@ -32,10 +35,7 @@ class RegisterForm(UserCreationForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.email        = self.cleaned_data['email']
-        user.first_name   = self.cleaned_data['first_name']
-        user.last_name    = self.cleaned_data['last_name']
-        user.phone_number = self.cleaned_data.get('phone_number', '')
+        user.email = self.cleaned_data['email']
         if commit:
             user.save()
         return user

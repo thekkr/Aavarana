@@ -38,10 +38,13 @@ class CustomUser(AbstractUser):
         return self.role in (self.Role.AUTHOR, self.Role.ADMIN) or self.is_superuser
 
     def is_google_user(self):
+        # Uses prefetched socialaccount_set if available — no extra query
+        if hasattr(self, '_prefetched_objects_cache') and 'socialaccount_set' in self._prefetched_objects_cache:
+            return any(a.provider == 'google' for a in self.socialaccount_set.all())
         return self.socialaccount_set.filter(provider='google').exists()
 
     def is_newsletter_subscribed(self):
-        return NewsletterSubscriber.objects.filter(user=self).exists()
+        return hasattr(self, 'newsletter_subscription')
 
     @property
     def profile(self):
