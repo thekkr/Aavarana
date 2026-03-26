@@ -1,3 +1,4 @@
+import bleach
 from django.conf import settings
 from django.db import models
 from django.db.models import F
@@ -5,6 +6,31 @@ from django.utils import timezone
 from django.utils.html import strip_tags
 
 from apps.core.models import TimeStampedModel
+
+# Tags and attributes allowed in article body (covers all TinyMCE output)
+ALLOWED_TAGS = [
+    'p', 'br', 'hr',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'strong', 'em', 'u', 's', 'del', 'ins', 'mark', 'sub', 'sup',
+    'ul', 'ol', 'li',
+    'blockquote', 'pre', 'code',
+    'a', 'img',
+    'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption',
+    'div', 'span',
+]
+ALLOWED_ATTRIBUTES = {
+    'a':   ['href', 'title', 'target', 'rel'],
+    'img': ['src', 'alt', 'title', 'width', 'height', 'style'],
+    'td':  ['colspan', 'rowspan', 'style'],
+    'th':  ['colspan', 'rowspan', 'style'],
+    'p':   ['style'],
+    'div': ['style'],
+    'span':['style'],
+    'pre': ['class'],
+    'code':['class'],
+    'table': ['style'],
+    'tr':  ['style'],
+}
 
 
 class Category(TimeStampedModel):
@@ -73,10 +99,10 @@ class Article(TimeStampedModel):
 
     def save(self, *args, **kwargs):
         if not kwargs.get('update_fields'):
-            word_count = len(self.body.split())
-            self.read_time = max(1, round(word_count / 200))
+            self.body = bleach.clean(self.body, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES, strip=True)
+            plain = strip_tags(self.body)
+            self.read_time = max(1, round(len(plain.split()) / 200))
             if not self.excerpt:
-                plain = strip_tags(self.body)
                 words = plain.split()[:30]
                 self.excerpt = ' '.join(words) + ('...' if len(plain.split()) > 30 else '')
         super().save(*args, **kwargs)

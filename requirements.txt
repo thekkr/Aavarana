@@ -16,3 +16,6 @@ django-allauth==65.3.0
 requests
 PyJWT>=2.0
 cryptography
+
+# HTML sanitization (prevents XSS in TinyMCE article body)
+bleach==6.2.0

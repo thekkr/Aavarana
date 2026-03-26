@@ -72,7 +72,7 @@
 
         <div class="d-flex align-items-center gap-3 mb-5 p-3 bg-light rounded">
             {% if article.status == 'published' %}
-                {% if user.is_authenticated %}
+                {% if user.is_authenticated and user != article.author %}
                     <button id="likeBtn"
                             data-url="{% url 'articles:like' article.slug %}"
                             data-csrf="{{ csrf_token }}"
@@ -81,8 +81,10 @@
                         <span id="likeCount">{{ like_count }}</span>
                         <span id="likeLabel">{% if user_liked %}Unlike{% else %}Like{% endif %}</span>
                     </button>
+                {% elif user.is_authenticated %}
+                    <span class="text-muted"><i class="bi bi-heart-fill text-danger"></i> {{ like_count }}</span>
                 {% else %}
-                    <span class="text-muted"><i class="bi bi-heart"></i> {{ like_count }} likes &mdash; <a href="{% url 'accounts:login' %}">Login to like</a></span>
+                    <span class="text-muted"><i class="bi bi-heart"></i> {{ like_count }} &mdash; <a href="{% url 'accounts:login' %}">Login to like</a></span>
                 {% endif %}
 
                     <button id="saveBtn"

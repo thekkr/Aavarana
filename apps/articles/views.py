@@ -196,6 +196,11 @@ class ArticleReviewView(AdminRequiredMixin, View):
 class LikeToggleView(LoginRequiredMixin, View):
     def post(self, request, slug):
         article = get_object_or_404(Article, slug=slug, status='published')
+        if article.author == request.user:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'error': 'You cannot like your own article.'}, status=403)
+            messages.error(request, 'You cannot like your own article.')
+            return redirect('articles:detail', slug=slug)
         like, created = Like.objects.get_or_create(article=article, user=request.user)
         if not created:
             like.delete()
