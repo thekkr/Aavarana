@@ -90,11 +90,22 @@ class ProfileEditForm(forms.ModelForm):
 
 
 class RoleChangeForm(forms.Form):
-    ROLE_CHOICES = [
+    ADMIN_CHOICES = [
         ('viewer', 'Viewer'),
         ('author', 'Author'),
     ]
-    role = forms.ChoiceField(choices=ROLE_CHOICES)
+    SUPERUSER_CHOICES = [
+        ('viewer', 'Viewer'),
+        ('author', 'Author'),
+        ('admin',  'Admin'),
+    ]
+
+    def __init__(self, *args, editor=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        choices = self.SUPERUSER_CHOICES if (editor and editor.is_superuser) else self.ADMIN_CHOICES
+        self.fields['role'] = forms.ChoiceField(choices=choices)
+
+    role = forms.ChoiceField(choices=ADMIN_CHOICES)
 
 
 class PasswordResetRequestForm(forms.Form):

@@ -35,7 +35,7 @@ class CustomUser(AbstractUser):
         return self.role == self.Role.VIEWER
 
     def can_write(self):
-        return self.role in (self.Role.AUTHOR, self.Role.ADMIN)
+        return self.role in (self.Role.AUTHOR, self.Role.ADMIN) or self.is_superuser
 
     def is_google_user(self):
         return self.socialaccount_set.filter(provider='google').exists()

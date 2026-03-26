@@ -125,32 +125,42 @@ class UserListView(AdminRequiredMixin, ListView):
     template_name       = 'accounts/user_list.html'
     context_object_name = 'users'
     paginate_by         = 20
-    ordering            = ['-date_joined']
 
     def get_queryset(self):
-        return CustomUser.objects.exclude(role='admin').order_by('-date_joined')
+        qs = CustomUser.objects.exclude(is_superuser=True).order_by('-date_joined')
+        # Admin can only see Viewers and Authors, not other Admins
+        if not self.request.user.is_superuser:
+            qs = qs.exclude(role='admin')
+        return qs
 
 
 class UserRoleUpdateView(AdminRequiredMixin, View):
     def post(self, request, pk):
         target_user = get_object_or_404(CustomUser, pk=pk)
 
-        # Safety checks
         if target_user == request.user:
             messages.error(request, 'You cannot change your own role.')
             return redirect('accounts:user_list')
-        if target_user.is_admin():
-            messages.error(request, 'Cannot change another admin\'s role.')
+        if target_user.is_superuser:
+            messages.error(request, 'Cannot change the superuser\'s role.')
+            return redirect('accounts:user_list')
+        # Admin cannot change another Admin's role — only Superuser can
+        if target_user.is_admin() and not request.user.is_superuser:
+            messages.error(request, 'Only the superuser can change an admin\'s role.')
             return redirect('accounts:user_list')
 
-        form = RoleChangeForm(request.POST)
+        form = RoleChangeForm(request.POST, editor=request.user)
         if form.is_valid():
             new_role = form.cleaned_data['role']
+            # Only superuser can assign admin role
+            if new_role == 'admin' and not request.user.is_superuser:
+                messages.error(request, 'Only the superuser can assign the Admin role.')
+                return redirect('accounts:user_list')
             target_user.role = new_role
             target_user.save(update_fields=['role'])
             messages.success(
                 request,
-                f'{target_user.email} is now a {target_user.get_role_display()}.'
+                f'{target_user.username} is now a {target_user.get_role_display()}.'
             )
         else:
             messages.error(request, 'Invalid role selection.')

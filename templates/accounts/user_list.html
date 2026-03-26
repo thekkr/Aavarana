@@ -5,7 +5,9 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>User Management</h2>
-    <span class="text-muted">Viewers &amp; Authors</span>
+    <span class="text-muted">
+        {% if request.user.is_superuser %}All Users{% else %}Viewers &amp; Authors{% endif %}
+    </span>
 </div>
 
 <div class="table-responsive">
@@ -23,11 +25,15 @@
             {% for u in users %}
             <tr>
                 <td>
-                    <strong>{{ u.get_full_name|default:u.username }}</strong>
+                    <a href="{% url 'accounts:profile' u.username %}" class="text-decoration-none text-dark">
+                        <strong>{{ u.get_full_name|default:u.username }}</strong>
+                    </a>
                 </td>
                 <td>{{ u.email }}</td>
                 <td>
-                    {% if u.role == 'author' %}
+                    {% if u.role == 'admin' %}
+                        <span class="badge bg-danger">Admin</span>
+                    {% elif u.role == 'author' %}
                         <span class="badge bg-primary">Author</span>
                     {% else %}
                         <span class="badge bg-secondary">Viewer</span>
@@ -40,6 +46,9 @@
                         <select name="role" class="form-select form-select-sm" style="width:120px;">
                             <option value="viewer" {% if u.role == 'viewer' %}selected{% endif %}>Viewer</option>
                             <option value="author" {% if u.role == 'author' %}selected{% endif %}>Author</option>
+                            {% if request.user.is_superuser %}
+                                <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>Admin</option>
+                            {% endif %}
                         </select>
                         <button type="submit" class="btn btn-sm btn-outline-dark">Save</button>
                     </form>
