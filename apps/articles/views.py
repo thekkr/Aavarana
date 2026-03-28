@@ -177,6 +177,7 @@ class ArticleSubmitView(AuthorRequiredMixin, View):
 class ReviewQueueView(AdminRequiredMixin, ListView):
     template_name = 'articles/review_queue.html'
     context_object_name = 'articles'
+    paginate_by = 20
 
     def get_queryset(self):
         return Article.objects.filter(
