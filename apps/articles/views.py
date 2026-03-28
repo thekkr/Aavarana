@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.core.files.storage import default_storage
+from django.db import IntegrityError
 from django.db.models import Count
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -118,20 +119,19 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
         article = form.save(commit=False)
         article.author = self.request.user
         article.status = 'draft'
-        article.slug = self._unique_slug(form.cleaned_data['title'])
-        article.save()
+        base_slug = slugify(form.cleaned_data['title'])
+        article.slug = base_slug
+        counter = 1
+        while True:
+            try:
+                article.save()
+                break
+            except IntegrityError:
+                article.slug = f'{base_slug}-{counter}'
+                counter += 1
         form.save_m2m()
         messages.success(self.request, 'Article saved as draft.')
         return redirect('articles:detail', slug=article.slug)
-
-    def _unique_slug(self, title):
-        base = slugify(title)
-        slug = base
-        counter = 1
-        while Article.objects.filter(slug=slug).exists():
-            slug = f'{base}-{counter}'
-            counter += 1
-        return slug
 
 
 class ArticleEditView(AuthorRequiredMixin, UpdateView):
