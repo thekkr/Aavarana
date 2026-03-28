@@ -40,11 +40,11 @@ class MyArticlesView(AuthorRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         user = self.request.user
-        all_articles = Article.objects.filter(author=user).select_related('category').order_by('-updated_at')
-        ctx['drafts']    = [a for a in all_articles if a.status == 'draft']
-        ctx['in_review'] = [a for a in all_articles if a.status == 'in_review']
-        ctx['revisions'] = [a for a in all_articles if a.status == 'revision']
-        ctx['published'] = [a for a in all_articles if a.status == 'published']
+        base = Article.objects.filter(author=user).select_related('category').order_by('-updated_at')
+        ctx['drafts']    = base.filter(status='draft')
+        ctx['in_review'] = base.filter(status='in_review')
+        ctx['revisions'] = base.filter(status='revision')
+        ctx['published'] = base.filter(status='published')
         return ctx
 
 
@@ -82,6 +82,30 @@ class ArticleDetailView(DetailView):
         ctx['user_liked'] = self.object.likes.filter(user=user).exists() if user.is_authenticated else False
         ctx['user_saved'] = self.object.saves.filter(user=user).exists() if user.is_authenticated else False
         ctx['can_delete'] = user.is_authenticated and self.object.is_deletable_by(user)
+        return ctx
+
+
+class ArticlePreviewView(LoginRequiredMixin, DetailView):
+    model = Article
+    template_name = 'articles/article_detail.html'
+    context_object_name = 'article'
+
+    def get_object(self, queryset=None):
+        obj = get_object_or_404(Article, slug=self.kwargs['slug'])
+        user = self.request.user
+        if not (user == obj.author or user.is_admin() or user.is_superuser):
+            raise PermissionDenied
+        return obj
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['is_preview'] = True
+        ctx['like_count'] = 0
+        ctx['user_liked'] = False
+        ctx['user_saved'] = False
+        ctx['can_delete'] = False
+        ctx['comments'] = []
+        ctx['review_notes'] = []
         return ctx
 
 
