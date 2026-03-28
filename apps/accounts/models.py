@@ -44,7 +44,10 @@ class CustomUser(AbstractUser):
         return self.socialaccount_set.filter(provider='google').exists()
 
     def is_newsletter_subscribed(self):
-        return hasattr(self, 'newsletter_subscription')
+        try:
+            return self.newsletter_subscription is not None
+        except NewsletterSubscriber.DoesNotExist:
+            return False
 
     @property
     def profile(self):
