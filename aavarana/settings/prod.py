@@ -2,8 +2,11 @@ from .base import *
 
 DEBUG = False
 
+# Cloudflare handles HTTPS — tell Django to trust the forwarded proto header
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # HTTPS enforcement
-SECURE_SSL_REDIRECT            = True
+SECURE_SSL_REDIRECT            = False  # Cloudflare Tunnel handles this
 SECURE_HSTS_SECONDS            = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD            = True
@@ -14,6 +17,9 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SECURE      = True
 CSRF_COOKIE_HTTPONLY    = True
+
+# Force HTTPS for allauth callback URLs
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
 
 # Security headers
 SECURE_CONTENT_TYPE_NOSNIFF  = True
