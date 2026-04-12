@@ -7,7 +7,20 @@
 <div class="row">
     <div class="col-lg-8 mx-auto">
 
-        {% if article.status != 'published' %}
+        {% if is_preview %}
+        <div class="alert alert-info d-flex align-items-center justify-content-between mb-3">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-eye-fill me-2"></i>
+                <strong>Preview Mode</strong>
+                <span class="ms-2 fw-normal">This is how your article will look when published.</span>
+            </div>
+            <a href="{% url 'articles:detail' article.slug %}" class="btn btn-sm btn-outline-dark">
+                <i class="bi bi-arrow-left me-1"></i>Back
+            </a>
+        </div>
+        {% endif %}
+
+        {% if article.status != 'published' and not is_preview %}
         <div class="alert alert-warning d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center">
                 <i class="bi bi-exclamation-triangle me-2"></i>
@@ -101,6 +114,9 @@
             {% endif %}
 
             {% if request.user == article.author or request.user.is_admin %}
+                {% if article.status != 'published' and not is_preview %}
+                    <a href="{% url 'articles:preview' article.slug %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-eye"></i> Preview</a>
+                {% endif %}
                 {% if article.status in 'draft,revision' %}
                     <a href="{% url 'articles:edit' article.slug %}" class="btn btn-outline-dark btn-sm"><i class="bi bi-pencil"></i> Edit</a>
                 {% endif %}
